@@ -1,0 +1,17 @@
+{
+  "plugins": [
+    {
+      "name": "Ghost text",
+      "className": "GhostText",
+      "description": "Adds text to the editor.",
+      "path": "src/ghosttext.ts",
+      "uiComponents": [
+        {
+          "name": "ghostTextButton",
+          "type": "Button",
+          "iconPath": "theme/icons/ckeditor.svg"
+        }
+      ]
+    }
+  ]
+}
