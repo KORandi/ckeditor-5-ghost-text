@@ -1,6 +1,6 @@
 import { Plugin } from 'ckeditor5';
 import GhostTextEditing from './ghost-text-editing';
-import '../theme/style.css';
+import './styles/ghost-text.css';
 
 export default class GhostText extends Plugin {
 	static get requires() {
