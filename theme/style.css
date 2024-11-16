@@ -1,0 +1,8 @@
+.ck-ghost-text {
+	color: var(--ck-color-input-disabled-text);
+	opacity: var(--ck-disabled-opacity);
+}
+
+.ck-ghost-text.ck-ghost-text--with-value {
+	cursor: pointer;
+}
