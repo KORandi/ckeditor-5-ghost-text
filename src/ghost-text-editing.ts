@@ -207,28 +207,40 @@ export default class GhostTextEditing extends Plugin {
 		this.editor.execute('ghostText', value);
 	}
 
-	private async fetchContent(): Promise<string> {
+	private async fetchContent(signal: AbortSignal): Promise<string> {
+		const editor = this.editor;
 		const contentFetcher = this.getConfig()['contentFetcher'];
 		try {
-			return await contentFetcher();
+			// Pass the signal to the fetcher for abort support
+			return await contentFetcher({ editor, signal });
 		} catch (error) {
+			if (signal.aborted) {
+				console.warn('Fetch aborted:', error);
+				return '';
+			}
 			console.error('Error fetching ghost text content:', error);
 			return '';
 		}
 	}
 
 	private memoizedFetchContent(): () => Promise<string> {
-		let lastPromise: Promise<string> | null = null;
+		let lastController: AbortController | null = null;
 
 		return (): Promise<string> => {
-			const currentPromise = this.fetchContent();
-			lastPromise = currentPromise;
+			// Cancel the previous request if it exists
+			if (lastController) {
+				lastController.abort();
+			}
 
-			return currentPromise.then((result) => {
-				if (currentPromise === lastPromise && this.isLoading) {
-					return result;
+			// Create a new AbortController for the current request
+			const controller = new AbortController();
+			lastController = controller;
+
+			return this.fetchContent(controller.signal).then((result) => {
+				if (controller.signal.aborted) {
+					throw new Error('Fetch was cancelled');
 				}
-				throw new Error('Fetch was cancelled');
+				return result;
 			});
 		};
 	}

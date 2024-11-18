@@ -1,3 +1,4 @@
+import { Editor } from 'ckeditor5';
 import type { GhostText } from './index';
 
 declare module '@ckeditor/ckeditor5-core' {
@@ -8,9 +9,12 @@ declare module '@ckeditor/ckeditor5-core' {
 	// Add custom configuration options to EditorConfig
 	interface EditorConfig {
 		ghostText?: {
-			ghostTextValue?: string; // Default ghost text value
-			debounceDelay?: number; // Debounce delay for updates
-			contentFetcher?: () => Promise<string>; // Async function to fetch ghost text
+			ghostTextValue?: string;
+			debounceDelay?: number;
+			contentFetcher?: (props: {
+				editor: Editor;
+				signal: AbortSignal;
+			}) => Promise<string>;
 			keystrokes?: {
 				insertGhostText?: string;
 				acceptGhostText?: string;
