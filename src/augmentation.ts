@@ -1,5 +1,5 @@
-import { Editor } from 'ckeditor5';
 import type { GhostText } from './index';
+import { ContentFetcherProps } from './interfaces/content-fetcher';
 
 declare module '@ckeditor/ckeditor5-core' {
 	interface PluginsMap {
@@ -11,10 +11,7 @@ declare module '@ckeditor/ckeditor5-core' {
 		ghostText?: {
 			ghostTextValue?: string;
 			debounceDelay?: number;
-			contentFetcher?: (props: {
-				editor: Editor;
-				signal: AbortSignal;
-			}) => Promise<string>;
+			contentFetcher?: (props: ContentFetcherProps) => Promise<string>;
 			keystrokes?: {
 				insertGhostText?: string;
 				acceptGhostText?: string;
