@@ -230,7 +230,6 @@ export default class GhostTextEditing extends Plugin {
 			// Cancel the previous request if it exists
 			if (lastController) {
 				lastController.abort();
-				throw new Error('Fetch was cancelled');
 			}
 
 			// Create a new AbortController for the current request
