@@ -1,4 +1,11 @@
-import { DomEventData, DowncastWriter, Item, Plugin } from 'ckeditor5';
+import {
+	DiffItem,
+	DomEventData,
+	DowncastWriter,
+	Item,
+	Plugin,
+	Writer,
+} from 'ckeditor5';
 import loadingPrompt from '../theme/loading-prompt.svg';
 import { debounce } from './utils';
 import { GhostTextCommand } from './ghost-text-command';
@@ -150,6 +157,25 @@ export default class GhostTextEditing extends Plugin {
 		this.isLoading = false;
 	}
 
+	private removeGhostLetter(writer: Writer, changes: DiffItem[]): boolean {
+		const insertedContents = this.getInsertedContents(writer, changes);
+		const ghostText = this.fetchedText;
+
+		if (insertedContents.length && ghostText) {
+			for (const insertedContent of insertedContents) {
+				if (
+					insertedContent.is('$textProxy') &&
+					insertedContent.data.toLowerCase() ===
+						ghostText[0].toLowerCase()
+				) {
+					this.fetchedText = ghostText.substring(1);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	private applyGhostText() {
 		const editor = this.editor;
 		const value = this.fetchedText;
@@ -160,7 +186,31 @@ export default class GhostTextEditing extends Plugin {
 	}
 
 	private handleInsertContent() {
-		this.insertWrapper.debounced();
+		const editor = this.editor;
+		const changes = editor.model.document.differ.getChanges();
+		editor.model.enqueueChange({ isUndoable: false }, (writer) => {
+			if (this.removeGhostLetter(writer, changes)) {
+				return;
+			}
+			this.insertWrapper.debounced();
+		});
+	}
+
+	private getInsertedContents(
+		writer: Writer,
+		changes: DiffItem[]
+	): Array<Item> {
+		return changes.reduce<Item[]>((acc, change) => {
+			if (change.type === 'insert') {
+				const { length, position } = change;
+				const range = writer.createRange(
+					position,
+					position.getShiftedBy(length)
+				);
+				acc.push(...Array.from(range.getItems()));
+			}
+			return acc;
+		}, []);
 	}
 
 	private handleSelectionChange(_, { directChange }) {
@@ -211,7 +261,7 @@ export default class GhostTextEditing extends Plugin {
 		const editor = this.editor;
 		const contentFetcher = this.getConfig()['contentFetcher'];
 		try {
-			// Pass the signal to the fetcher for abort support
+			// pass the signal to the fetcher for abort support
 			return await contentFetcher({ editor, signal });
 		} catch (error) {
 			if (signal.aborted) {
@@ -227,12 +277,12 @@ export default class GhostTextEditing extends Plugin {
 		let lastController: AbortController | null = null;
 
 		return (): Promise<string> => {
-			// Cancel the previous request if it exists
+			// cancel the previous request if it exists
 			if (lastController) {
 				lastController.abort();
 			}
 
-			// Create a new AbortController for the current request
+			// create a new AbortController for the current request
 			const controller = new AbortController();
 			lastController = controller;
 
