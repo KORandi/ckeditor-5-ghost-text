@@ -1,7 +1,7 @@
 .ck-ghost-text {
 	color: var(--ck-color-input-disabled-text);
 	opacity: var(--ck-disabled-opacity);
-	display: inline-block;
+	display: inline;
 }
 
 .ck-ghost-text.ck-ghost-text--with-value {
