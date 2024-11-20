@@ -57,7 +57,7 @@ export default class GhostTextEditing extends Plugin {
 
 	private registerConverters() {
 		const editor = this.editor;
-		editor.conversion.for('editingDowncast').elementToElement({
+		editor.conversion.for('downcast').elementToElement({
 			model: { name: 'ghostText' },
 			view: this.createGhostTextView.bind(this),
 		});
