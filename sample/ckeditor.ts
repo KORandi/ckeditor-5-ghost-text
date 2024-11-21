@@ -101,7 +101,7 @@ ClassicEditor.create(document.getElementById('editor')!, {
 		contentFetcher: async () => {
 			const stream = new ReadableStream({
 				start(controller) {
-					setTimeout(() => controller.enqueue('This '), 1250);
+					setTimeout(() => controller.enqueue('This '), 200);
 					setTimeout(() => controller.enqueue('is '), 1500);
 					setTimeout(() => controller.enqueue('an '), 2000);
 					setTimeout(() => controller.enqueue('example '), 2500);

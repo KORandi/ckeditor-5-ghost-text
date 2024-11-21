@@ -216,6 +216,8 @@ export default class GhostTextEditing extends Plugin {
 		editor.model.enqueueChange({ isUndoable: false }, (writer) => {
 			if (this.removeGhostLetter(writer, changes)) {
 				return;
+			} else {
+				this.memoFetchContent[1].current?.abort();
 			}
 			this.insertWrapper.debounced();
 		});
