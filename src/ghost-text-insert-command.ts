@@ -8,7 +8,12 @@ export class GhostTextInsertCommand extends Command {
 			if (!position) {
 				return;
 			}
-			writer.insertText(value, position);
+			const attributes = Object.fromEntries(
+				editor.model.document.selection.getAttributes()
+			);
+			const textNode = writer.createText(value, attributes);
+
+			writer.insert(textNode, position);
 		});
 	}
 }
