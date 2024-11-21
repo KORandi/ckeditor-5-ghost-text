@@ -314,7 +314,7 @@ export default class GhostTextEditing extends Plugin {
 	}
 
 	private async processStreamContent(
-		stream: ReadableStream,
+		stream: ReadableStream<string>,
 		signal: AbortSignal
 	): Promise<string> {
 		const reader = stream.getReader();

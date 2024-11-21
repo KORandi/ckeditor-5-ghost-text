@@ -8,12 +8,12 @@ declare module '@ckeditor/ckeditor5-core' {
 
 	// Add custom configuration options to EditorConfig
 	interface EditorConfig {
-		ghostText?: {
+		ghostText: {
 			ghostTextValue?: string;
 			debounceDelay?: number;
-			contentFetcher?: (
+			contentFetcher: (
 				props: ContentFetcherProps
-			) => Promise<string | ReadableStream>;
+			) => Promise<string | ReadableStream<string>>;
 			keystrokes?: {
 				insertGhostText?: string;
 				acceptGhostText?: string;
