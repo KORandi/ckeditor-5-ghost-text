@@ -71,6 +71,23 @@ export default class GhostTextEditing extends Plugin {
 		modelElement,
 		{ writer }: { writer: DowncastWriter }
 	) {
+		const cursorAttributes = Object.fromEntries(
+			this.editor.model.document.selection.getAttributes()
+		);
+		let wrapperContent = modelElement.getAttribute('data-value') || '';
+
+		if (cursorAttributes.bold) {
+			wrapperContent = `<b>${wrapperContent}</b>`;
+		}
+
+		if (cursorAttributes.italic) {
+			wrapperContent = `<i>${wrapperContent}</i>`;
+		}
+
+		if (cursorAttributes.underline) {
+			wrapperContent = `<ins>${wrapperContent}</ins>`;
+		}
+
 		const attributes = { class: 'ck-ghost-text' };
 		if (modelElement.hasAttribute('data-value')) {
 			attributes.class += ' ck-ghost-text--with-value';
@@ -78,9 +95,7 @@ export default class GhostTextEditing extends Plugin {
 
 		return writer.createRawElement('span', attributes, (domElement) => {
 			const loading = modelElement.getAttribute('loading');
-			domElement.innerHTML = loading
-				? loadingPrompt
-				: modelElement.getAttribute('data-value') || '';
+			domElement.innerHTML = loading ? loadingPrompt : wrapperContent;
 		});
 	}
 
