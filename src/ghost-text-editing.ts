@@ -217,7 +217,7 @@ export default class GhostTextEditing extends Plugin {
 			if (this.removeGhostLetter(writer, changes)) {
 				return;
 			} else {
-				this.memoFetchContent[1].current?.abort();
+				this.clearGhostText();
 			}
 			this.insertWrapper.debounced();
 		});
