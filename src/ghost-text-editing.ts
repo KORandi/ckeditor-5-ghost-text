@@ -321,6 +321,7 @@ export default class GhostTextEditing extends Plugin {
 		let done = false;
 
 		this.fetchedText = '';
+		this.isLoading = true;
 		while (!done) {
 			if (signal.aborted) {
 				this.fetchedText = '';
@@ -328,6 +329,10 @@ export default class GhostTextEditing extends Plugin {
 			}
 			const { value, done: isDone } = await reader.read();
 			done = isDone;
+
+			if (this.fetchedText == '') {
+				this.isLoading = false;
+			}
 
 			if (value) {
 				this.fetchedText += value;

@@ -101,17 +101,15 @@ ClassicEditor.create(document.getElementById('editor')!, {
 		contentFetcher: async () => {
 			const stream = new ReadableStream({
 				start(controller) {
-					// Emit chunks of data with delays
-					controller.enqueue('This ');
-					setTimeout(() => controller.enqueue('is '), 500);
-					setTimeout(() => controller.enqueue('an '), 1000);
-					setTimeout(() => controller.enqueue('example '), 1500);
-					setTimeout(() => controller.enqueue('of '), 2000);
-					setTimeout(() => controller.enqueue('streaming '), 2500);
-					setTimeout(() => controller.enqueue('data.'), 3000);
+					setTimeout(() => controller.enqueue('This '), 1250);
+					setTimeout(() => controller.enqueue('is '), 1500);
+					setTimeout(() => controller.enqueue('an '), 2000);
+					setTimeout(() => controller.enqueue('example '), 2500);
+					setTimeout(() => controller.enqueue('of '), 3000);
+					setTimeout(() => controller.enqueue('streaming '), 3500);
+					setTimeout(() => controller.enqueue('data.'), 4000);
 
-					// Close the stream after all chunks are sent
-					setTimeout(() => controller.close(), 3500);
+					setTimeout(() => controller.close(), 4100);
 				},
 				cancel(reason) {
 					console.log('Stream canceled:', reason);
