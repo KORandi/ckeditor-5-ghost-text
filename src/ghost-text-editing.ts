@@ -71,10 +71,29 @@ export default class GhostTextEditing extends Plugin {
 		modelElement,
 		{ writer }: { writer: DowncastWriter }
 	) {
-		const cursorAttributes = Object.fromEntries(
-			this.editor.model.document.selection.getAttributes()
+		const content = this.applyTextDecoration(
+			modelElement.getAttribute('data-value'),
+			Object.fromEntries(
+				this.editor.model.document.selection.getAttributes()
+			)
 		);
-		let wrapperContent = modelElement.getAttribute('data-value') || '';
+
+		const attributes = { class: 'ck-ghost-text' };
+		if (modelElement.hasAttribute('data-value')) {
+			attributes.class += ' ck-ghost-text--with-value';
+		}
+
+		return writer.createRawElement('span', attributes, (domElement) => {
+			const loading = modelElement.getAttribute('loading');
+			domElement.innerHTML = loading ? loadingPrompt : content;
+		});
+	}
+
+	private applyTextDecoration(
+		text: string,
+		cursorAttributes: Record<string, unknown>
+	) {
+		let wrapperContent = text;
 
 		if (cursorAttributes.bold) {
 			wrapperContent = `<b>${wrapperContent}</b>`;
@@ -88,15 +107,7 @@ export default class GhostTextEditing extends Plugin {
 			wrapperContent = `<ins>${wrapperContent}</ins>`;
 		}
 
-		const attributes = { class: 'ck-ghost-text' };
-		if (modelElement.hasAttribute('data-value')) {
-			attributes.class += ' ck-ghost-text--with-value';
-		}
-
-		return writer.createRawElement('span', attributes, (domElement) => {
-			const loading = modelElement.getAttribute('loading');
-			domElement.innerHTML = loading ? loadingPrompt : wrapperContent;
-		});
+		return wrapperContent;
 	}
 
 	private registerCommands() {
@@ -151,7 +162,7 @@ export default class GhostTextEditing extends Plugin {
 			'change:range',
 			this.handleSelectionChange.bind(this)
 		);
-		editor.model.on('deleteContent', this.clearGhostText.bind(this));
+		editor.model.on('deleteContent', this.handleDeleteContent.bind(this));
 		editor.editing.view.document.on(
 			'click',
 			this.handleGhostTextClick.bind(this)
@@ -163,8 +174,7 @@ export default class GhostTextEditing extends Plugin {
 
 		this.isLoading = true;
 		try {
-			const content = await this.memoFetchContent[0]();
-			this.updateGhostText(content);
+			this.fetchedText = await this.memoFetchContent[0]();
 		} catch (error) {
 			this.handeInsertGhostTextError(error);
 			return;
@@ -211,6 +221,13 @@ export default class GhostTextEditing extends Plugin {
 		});
 	}
 
+	private handleDeleteContent() {
+		const changes = this.editor.model.document.differ.getChanges();
+		if (changes.length) {
+			this.clearGhostText();
+		}
+	}
+
 	private getInsertedContents(
 		writer: Writer,
 		changes: DiffItem[]
@@ -236,7 +253,6 @@ export default class GhostTextEditing extends Plugin {
 			this.editor.model.document.selection.isCollapsed &&
 			!this.isGhostText(selection.nodeAfter)
 		) {
-			this.insertWrapper.cancel();
 			this.clearGhostText();
 		}
 	}
@@ -276,17 +292,57 @@ export default class GhostTextEditing extends Plugin {
 	private async fetchContent(signal: AbortSignal): Promise<string> {
 		const editor = this.editor;
 		const contentFetcher = this.getConfig()['contentFetcher'];
-		try {
-			// pass the signal to the fetcher for abort support
-			return await contentFetcher({ editor, signal });
-		} catch (error) {
-			if (signal.aborted) {
-				console.warn('Fetch aborted:', error);
-				return '';
-			}
-			console.error('Error fetching ghost text content:', error);
-			return '';
+
+		if (!contentFetcher) {
+			throw new Error('No content fetcher provided.');
 		}
+
+		try {
+			// Fetch the content
+			const result = await contentFetcher({ editor, signal });
+
+			if (typeof result === 'string') {
+				return result;
+			} else if (result instanceof ReadableStream) {
+				return await this.processStreamContent(result, signal);
+			} else {
+				throw new Error('Unsupported content fetcher return type.');
+			}
+		} catch (error) {
+			this.handleFetchError(error, signal);
+		}
+	}
+
+	private async processStreamContent(
+		stream: ReadableStream,
+		signal: AbortSignal
+	): Promise<string> {
+		const reader = stream.getReader();
+		let done = false;
+
+		this.fetchedText = '';
+		while (!done) {
+			if (signal.aborted) {
+				this.fetchedText = '';
+				break;
+			}
+			const { value, done: isDone } = await reader.read();
+			done = isDone;
+
+			if (value) {
+				this.fetchedText += value;
+			}
+		}
+
+		return this.fetchedText;
+	}
+
+	private handleFetchError(error: any, signal: AbortSignal): void {
+		if (signal.aborted) {
+			console.warn('Fetch aborted:', error);
+			return;
+		}
+		console.error('Error fetching ghost text content:', error);
 	}
 
 	private memoizedFetchContent(): [
@@ -321,11 +377,6 @@ export default class GhostTextEditing extends Plugin {
 
 	private getConfig() {
 		return this.editor.config.get(`ghostText`);
-	}
-
-	private updateGhostText(content: string) {
-		this.fetchedText = content;
-		this.editor.execute('ghostText', content);
 	}
 
 	private handeInsertGhostTextError(error) {

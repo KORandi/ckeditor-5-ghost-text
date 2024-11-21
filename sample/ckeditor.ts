@@ -99,11 +99,25 @@ ClassicEditor.create(document.getElementById('editor')!, {
 	ghostText: {
 		debounceDelay: 1000,
 		contentFetcher: async () => {
-			return new Promise((resolve) =>
-				setTimeout(() => {
-					resolve('I need a dollar');
-				}, 2000)
-			);
+			const stream = new ReadableStream({
+				start(controller) {
+					// Emit chunks of data with delays
+					controller.enqueue('This ');
+					setTimeout(() => controller.enqueue('is '), 500);
+					setTimeout(() => controller.enqueue('an '), 1000);
+					setTimeout(() => controller.enqueue('example '), 1500);
+					setTimeout(() => controller.enqueue('of '), 2000);
+					setTimeout(() => controller.enqueue('streaming '), 2500);
+					setTimeout(() => controller.enqueue('data.'), 3000);
+
+					// Close the stream after all chunks are sent
+					setTimeout(() => controller.close(), 3500);
+				},
+				cancel(reason) {
+					console.log('Stream canceled:', reason);
+				},
+			});
+			return stream;
 		},
 	},
 })

@@ -11,7 +11,9 @@ declare module '@ckeditor/ckeditor5-core' {
 		ghostText?: {
 			ghostTextValue?: string;
 			debounceDelay?: number;
-			contentFetcher?: (props: ContentFetcherProps) => Promise<string>;
+			contentFetcher?: (
+				props: ContentFetcherProps
+			) => Promise<string | ReadableStream>;
 			keystrokes?: {
 				insertGhostText?: string;
 				acceptGhostText?: string;
