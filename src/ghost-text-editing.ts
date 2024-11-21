@@ -148,7 +148,7 @@ export default class GhostTextEditing extends Plugin {
 
 		this.isLoading = true;
 		try {
-			const content = await this.memoFetchContent();
+			const content = await this.memoFetchContent[0]();
 			this.updateGhostText(content);
 		} catch (error) {
 			this.handeInsertGhostTextError(error);
@@ -237,6 +237,7 @@ export default class GhostTextEditing extends Plugin {
 	private clearGhostText() {
 		this.isLoading = false;
 		this.insertWrapper.cancel();
+		this.memoFetchContent[1].current?.abort();
 		this.editor.execute('ghostTextRemove');
 	}
 
@@ -273,26 +274,34 @@ export default class GhostTextEditing extends Plugin {
 		}
 	}
 
-	private memoizedFetchContent(): () => Promise<string> {
-		let lastController: AbortController | null = null;
-
-		return (): Promise<string> => {
-			// cancel the previous request if it exists
-			if (lastController) {
-				lastController.abort();
-			}
-
-			// create a new AbortController for the current request
-			const controller = new AbortController();
-			lastController = controller;
-
-			return this.fetchContent(controller.signal).then((result) => {
-				if (controller.signal.aborted) {
-					throw new Error('Fetch was cancelled');
-				}
-				return result;
-			});
+	private memoizedFetchContent(): [
+		() => Promise<string>,
+		{ current: AbortController | null }
+	] {
+		const lastController: { current: AbortController | null } = {
+			current: null,
 		};
+
+		return [
+			(): Promise<string> => {
+				// cancel the previous request if it exists
+				if (lastController.current) {
+					lastController.current.abort();
+				}
+
+				// create a new AbortController for the current request
+				const controller = new AbortController();
+				lastController.current = controller;
+
+				return this.fetchContent(controller.signal).then((result) => {
+					if (controller.signal.aborted) {
+						throw new Error('Fetch was cancelled');
+					}
+					return result;
+				});
+			},
+			lastController,
+		];
 	}
 
 	private getConfig() {
