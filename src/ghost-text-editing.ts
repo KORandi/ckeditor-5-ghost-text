@@ -163,10 +163,12 @@ export default class GhostTextEditing extends Plugin {
 			this.handleSelectionChange.bind(this)
 		);
 		editor.model.on('deleteContent', this.handleDeleteContent.bind(this));
-		editor.editing.view.document.on(
-			'click',
-			this.handleGhostTextClick.bind(this)
-		);
+		editor.on('ready', () => {
+			editor.ui.view.element.addEventListener(
+				'click',
+				this.handleGhostTextClick.bind(this)
+			);
+		});
 	}
 
 	private async insertGhostText() {
@@ -259,10 +261,10 @@ export default class GhostTextEditing extends Plugin {
 		}
 	}
 
-	private handleGhostTextClick(_, domEvent: DomEventData) {
+	private handleGhostTextClick(domEvent) {
 		const target = domEvent.target;
 
-		if (target.hasClass('ck-ghost-text')) {
+		if (target?.classList.contains('ck-ghost-text')) {
 			this.applyGhostText();
 		}
 	}
