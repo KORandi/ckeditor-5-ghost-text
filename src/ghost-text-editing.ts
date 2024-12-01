@@ -314,6 +314,7 @@ export default class GhostTextEditing extends Plugin {
 			}
 		} catch (error) {
 			this.handleFetchError(error, signal);
+			return '';
 		}
 	}
 
