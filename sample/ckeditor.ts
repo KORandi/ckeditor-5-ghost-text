@@ -34,6 +34,7 @@ import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
 import GhostTextPlugin from '../src/ghosttextplugin.js';
 
 import 'ckeditor5/ckeditor5.css';
+import '../theme/ghost-text.css';
 
 ClassicEditor
 	.create( document.getElementById( 'editor' )!, {
@@ -85,6 +86,27 @@ ClassicEditor
 			'mediaEmbed',
 			'codeBlock'
 		],
+		ghostText: {
+			debounceDelay: 1000,
+			contentFetcher: async () => {
+				const stream = new ReadableStream( {
+					start( controller ) {
+						setTimeout( () => controller.enqueue( 'This ' ), 200 );
+						setTimeout( () => controller.enqueue( 'is ' ), 1500 );
+						setTimeout( () => controller.enqueue( 'an ' ), 2000 );
+						setTimeout( () => controller.enqueue( 'example ' ), 2500 );
+						setTimeout( () => controller.enqueue( 'of ' ), 3000 );
+						setTimeout( () => controller.enqueue( 'streaming ' ), 3500 );
+						setTimeout( () => controller.enqueue( 'data.' ), 4000 );
+						setTimeout( () => controller.close(), 4100 );
+					},
+					cancel( reason ) {
+						console.log( 'Stream canceled:', reason );
+					}
+				} );
+				return stream;
+			}
+		},
 		image: {
 			toolbar: [
 				'imageStyle:inline',
@@ -100,7 +122,8 @@ ClassicEditor
 				'tableRow',
 				'mergeTableCells'
 			]
-		}
+		},
+		licenseKey: 'GPL'
 	} )
 	.then( editor => {
 		window.editor = editor;
