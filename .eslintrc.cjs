@@ -31,7 +31,9 @@ module.exports = {
 				extensions: [".ts", ".js", ".json"],
 			},
 		],
-		"space-in-parens": "never",
+		"space-in-parens": 0,
+		"@typescript-eslint/comma-dangle": 0,
+		"@typescript-eslint/explicit-module-boundary-types": 0,
 	},
 	overrides: [
 		{

@@ -1,5 +1,5 @@
-import type { GhostText } from './index';
-import { ContentFetcherProps } from './interfaces/content-fetcher';
+import type { GhostText } from './index.js';
+import type { ContentFetcherProps } from './interfaces/content-fetcher.js';
 
 declare module '@ckeditor/ckeditor5-core' {
 	interface PluginsMap {
@@ -10,7 +10,7 @@ declare module '@ckeditor/ckeditor5-core' {
 	interface EditorConfig {
 		ghostText: {
 			ghostTextValue?: string;
-			debounceDelay?: number;
+			debounceDelay?: number | (() => number);
 			contentFetcher: (
 				props: ContentFetcherProps
 			) => Promise<string | ReadableStream<string>>;

@@ -1,9 +1,16 @@
-export const debounce = (func: (...args: any[]) => void, delay: number) => {
+export const debounce = (
+	func: (...args: Array<any>) => void,
+	delay: number | (() => number)
+) => {
 	let timer: ReturnType<typeof setTimeout>;
 
-	const debounced = (...args: any[]) => {
+	const debounced = (...args: Array<any>) => {
 		clearTimeout(timer);
-		timer = setTimeout(() => func(...args), delay);
+		if (typeof delay === 'function') {
+			timer = setTimeout(() => func(...args), delay());
+		} else {
+			timer = setTimeout(() => func(...args), delay);
+		}
 	};
 
 	const cancel = () => {
